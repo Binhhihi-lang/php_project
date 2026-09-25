@@ -47,7 +47,7 @@
     <nav>
         <div class="nav-group-label">Học vụ</div>
         <ul class="nav-list">
-            <li><a href="{{ url('/sinhvien') }}">
+            <li><a href="{{ route('sinhvien.index') }}">
                 <span class="icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/></svg>
                 </span>

@@ -11,16 +11,7 @@ Route::get('/', function () {
 Route::get('/gioi-thieu', function () {
     return '<h1>Đây là trang Giới thiệu</h1><p>Nội dung tùy ý ở đây</p>';
 });
-Route::get('/them-sinh-vien', function () {
-    return view('sinhvien.add');
-});
-Route::get('/sinhvien1', function () {
-    return view('sinhvien.index', [
-        'title' => 'Danh sách sinh viên'
-    ]);
-});
 
-// thêm 2 tham số vào route
 Route::get('/layout1', function () {
     return view('layout.layout1', [
         'title'        => 'Trang chủ LaptopShop',
@@ -30,25 +21,20 @@ Route::get('/layout1', function () {
 });
 
 
-Route::get('/sinhvien', [SinhVienController::class, 'index']);
-
-Route::get('/sinhvien-detail/{id?}', [SinhVienController::class, 'getID'])->where('id', '[0-9]+');
-
-Route::get('/sinhvien/show/{tuoi?}/{hoten?}', [SinhVienController::class, 'show'])->where('tuoi', '[0-9]+')->where('hoten', '[A-Za-z]+');
-
-
-// form thêm sinh viên
-Route::get('/sinhvien/add', [SinhVienController::class, 'add'])->name('sinhvien.add');
-
-// gắn 1 cái tên định danh (sinhvien.store) cho route này,
-// tách biệt hoàn toàn với URL thật POST (/sinhvien)
+// sinh viên — CRUD đầy đủ
+Route::get('/sinhvien', [SinhVienController::class, 'index'])->name('sinhvien.index');
+Route::get('/sinhvien/them', [SinhVienController::class, 'create'])->name('sinhvien.create');
 Route::post('/sinhvien', [SinhVienController::class, 'store'])->name('sinhvien.store');
+Route::get('/sinhvien/{id}/sua', [SinhVienController::class, 'edit'])->name('sinhvien.edit');
+Route::put('/sinhvien/{id}', [SinhVienController::class, 'update'])->name('sinhvien.update');
+Route::delete('/sinhvien/{id}', [SinhVienController::class, 'destroy'])->name('sinhvien.destroy');
 
 
-// lớp học 
+// lớp học — CRUD đầy đủ
 Route::get('/lophoc', [LopHocController::class, 'index'])->name('lophoc.index');
 Route::get('/lophoc/them', [LopHocController::class, 'create'])->name('lophoc.create');
 Route::post('/lophoc', [LopHocController::class, 'store'])->name('lophoc.store');
 Route::get('/lophoc/{id}/sua', [LopHocController::class, 'edit'])->name('lophoc.edit');
 Route::put('/lophoc/{id}', [LopHocController::class, 'update'])->name('lophoc.update');
 Route::delete('/lophoc/{id}', [LopHocController::class, 'destroy'])->name('lophoc.destroy');
+

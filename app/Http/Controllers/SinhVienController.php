@@ -2,78 +2,130 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SinhVien;
+use App\Models\LopHoc;
 use Illuminate\Http\Request;
 
 class SinhVienController extends Controller
 {
-
-    private $sinhviens = [
-        ['id' => 1, 'name' => 'Nguyễn Văn A', 'age' => 20, 'email' => 'nguyenvana@example.com'],
-        ['id' => 2, 'name' => 'Trần Thị B', 'age' => 21, 'email' => 'tranthib@example.com'],
-        ['id' => 3, 'name' => 'Lê Văn C', 'age' => 22, 'email' => 'levanc@example.com']
-    ];
-
-    //
-    public function index()
+    /**
+     * Danh sách sinh viên — có phân trang
+     */
+    public function index(Request $request)
     {
+        $perPage = $request->input('per_page', 10);
+        $sinhviens = SinhVien::with('lopHoc')->paginate($perPage)->withQueryString();
+
         return view('sinhvien.index', [
-            'title' => 'Danh sách sinh viên',
-            'sinhviens' => $this->sinhviens
+            'title'     => 'Danh sách sinh viên',
+            'sinhviens' => $sinhviens,
         ]);
     }
 
-
-
-    public function show($ten = "Chu Binh", $tuoi = 20)
+    /**
+     * Hiển thị form thêm sinh viên
+     */
+    public function create()
     {
-        return "Tên sinh viên: " . $ten . ", Tuổi: " . $tuoi;
+        $lophocs = LopHoc::where('trang_thai', true)->get();
+
+        return view('sinhvien.create', [
+            'title'   => 'Thêm sinh viên',
+            'lophocs' => $lophocs,
+        ]);
     }
 
-    // thông tin sinh viên theo id 
-    public function getID($id = "")
+    /**
+     * Xử lý lưu sinh viên mới
+     */
+    public function store(Request $request)
     {
-        // thay foreach bằng collection sẽ tối ưu hơn 
-        $sinhvien = collect($this->sinhviens)->firstWhere('id', $id);
+        $request->validate([
+            'ma_sv'         => 'required|string|max:50|unique:sinh_viens,ma_sv',
+            'ho_ten'        => 'required|string|max:255',
+            'email'         => 'required|email|max:255|unique:sinh_viens,email',
+            'ngay_sinh'     => 'nullable|date',
+            'gioi_tinh'     => 'required|boolean',
+            'lop_hoc_id'    => 'nullable|exists:lop_hocs,id',
+            'so_dien_thoai' => 'nullable|string|max:20',
+            'dia_chi'       => 'nullable|string',
+        ]);
 
-        //Thêm if else để không lỗi : Trying to access array offset on null
-        if ($sinhvien) {
-            return "Thông tin sinh viên: Tên: " . $sinhvien['name'] . ", Tuổi: " . $sinhvien['age'] . ", Email: " . $sinhvien['email'];
-        } else {
-            return "Không tìm thấy sinh viên với ID: " . $id;
+        try {
+            SinhVien::create($request->only([
+                'ma_sv', 'ho_ten', 'email', 'ngay_sinh', 'gioi_tinh',
+                'lop_hoc_id', 'so_dien_thoai', 'dia_chi', 'trang_thai',
+            ]));
+
+            return redirect()->route('sinhvien.index')
+                ->with('success', 'Thêm sinh viên thành công!');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->withInput()
+                ->withErrors(['error' => 'Lỗi khi thêm sinh viên: ' . $e->getMessage()]);
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()
+                ->withErrors(['error' => 'Lỗi khi thêm sinh viên: ' . $e->getMessage()]);
         }
     }
 
-    // hàm mở ra trang thêm sinh viên 
-    public function add()
+    /**
+     * Hiển thị form sửa sinh viên
+     */
+    public function edit($id)
     {
-        return view('sinhvien.add');
+        $sinhvien = SinhVien::findOrFail($id);
+        $lophocs  = LopHoc::where('trang_thai', true)->get();
+
+        return view('sinhvien.edit', [
+            'title'    => 'Sửa sinh viên',
+            'sinhvien' => $sinhvien,
+            'lophocs'  => $lophocs,
+        ]);
     }
 
-    // xử lý form thêm sinh viên 
-    public function store(Request $request)
+    /**
+     * Xử lý cập nhật sinh viên
+     */
+    public function update(Request $request, $id)
     {
-        dd($request->all()); // Dùng để debug dữ liệu nhận được từ form
+        $sinhvien = SinhVien::findOrFail($id);
 
-        // // Validate dữ liệu nhập vào
-        // $request->validate([
-        //     'name'  => 'required|string|max:255',
-        //     'age'   => 'required|integer|min:1',
-        //     'email' => 'required|email',
-        // ]);
+        $request->validate([
+            'ma_sv'         => 'required|string|max:50|unique:sinh_viens,ma_sv,' . $id,
+            'ho_ten'        => 'required|string|max:255',
+            'email'         => 'required|email|max:255|unique:sinh_viens,email,' . $id,
+            'ngay_sinh'     => 'nullable|date',
+            'gioi_tinh'     => 'required|boolean',
+            'lop_hoc_id'    => 'nullable|exists:lop_hocs,id',
+            'so_dien_thoai' => 'nullable|string|max:20',
+            'dia_chi'       => 'nullable|string',
+        ]);
 
-        // // Vì bạn đang dùng mảng tạm (chưa nối database),
-        // // ở đây chỉ demo — chưa lưu được thật sự vì $sinhviens
-        // // được khởi tạo lại mỗi lần request mới
-        // $newId = count($this->sinhviens) + 1;
+        $sinhvien->update([
+            'ma_sv'         => $request->ma_sv,
+            'ho_ten'        => $request->ho_ten,
+            'email'         => $request->email,
+            'ngay_sinh'     => $request->ngay_sinh,
+            'gioi_tinh'     => $request->gioi_tinh,
+            'lop_hoc_id'    => $request->lop_hoc_id,
+            'so_dien_thoai' => $request->so_dien_thoai,
+            'dia_chi'       => $request->dia_chi,
+            'trang_thai'    => $request->has('trang_thai'),
+        ]);
 
-        // $sinhVienMoi = [
-        //     'id'    => $newId,
-        //     'name'  => $request->name,
-        //     'age'   => $request->age,
-        //     'email' => $request->email,
-        // ];
+        return redirect()->route('sinhvien.index')
+            ->with('success', 'Cập nhật sinh viên thành công!');
+    }
 
-        // // return để kiểm tra tạm thời
-        // return "Đã nhận dữ liệu: " . json_encode($sinhVienMoi, JSON_UNESCAPED_UNICODE);
+    /**
+     * Xóa sinh viên
+     */
+    public function destroy($id)
+    {
+        $sinhvien = SinhVien::findOrFail($id);
+        $sinhvien->delete();
+
+        return redirect()->route('sinhvien.index')
+            ->with('success', 'Đã xóa sinh viên thành công!');
     }
 }

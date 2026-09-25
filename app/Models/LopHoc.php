@@ -19,4 +19,12 @@ class LopHoc extends Model
         'si_so',
         'trang_thai',
     ];
+
+    /**
+     * Lớp học có nhiều sinh viên
+     */
+    public function sinhViens()
+    {
+        return $this->hasMany(SinhVien::class, 'lop_hoc_id');
+    }
 }
