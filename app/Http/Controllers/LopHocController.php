@@ -4,20 +4,72 @@ namespace App\Http\Controllers;
 
 use App\Models\LopHoc;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Http\Requests\StoreLopHocRequest;
+use App\Http\Requests\UpdateLopHocRequest;
 
 class LopHocController extends Controller
 {
     public function index(Request $request)
     {
-        // Gọi Model -> Model tự động query xuống bảng lop_hocs trong Database
-        // $lophocs = LopHoc::all(); // gọi phương thức tĩnh , trả về toàn bộ bản ghi 
-        //$lophocs = LopHoc::paginate(10); // 10 dòng mỗi trang
-        $perPage = $request->input('per_page', 10);
-        $lophocs = LopHoc::paginate($perPage)->withQueryString(); // LopHoc extend từ Model nên có các hàm đó 
+        $siSoMaxRules = ['nullable', 'integer', 'min:1'];
+        if ($request->filled('si_so_min')) {
+            $siSoMaxRules[] = 'gte:si_so_min';
+        }
+
+        $filters = $request->validate([
+            'search'     => ['nullable', 'string', 'max:100'],
+            'trang_thai' => ['nullable', Rule::in(['0', '1'])],
+            'si_so_min'  => ['nullable', 'integer', 'min:1'],
+            'si_so_max'  => $siSoMaxRules,
+            'per_page'   => ['nullable', 'integer', Rule::in([10, 25, 50])],
+            'sort_by'    => ['nullable', Rule::in(['id', 'ma_lop', 'ten_lop', 'giao_vien', 'si_so', 'trang_thai'])],
+            'sort_dir'   => ['nullable', Rule::in(['asc', 'desc'])],
+        ], [
+            'si_so_min.integer' => 'Sĩ số từ phải là số nguyên dương.',
+            'si_so_min.min'     => 'Sĩ số từ phải lớn hơn hoặc bằng 1.',
+            'si_so_max.integer' => 'Sĩ số đến phải là số nguyên dương.',
+            'si_so_max.min'     => 'Sĩ số đến phải lớn hơn hoặc bằng 1.',
+            'si_so_max.gte'     => 'Sĩ số đến phải lớn hơn hoặc bằng sĩ số từ.',
+            'per_page.in'       => 'Số dòng mỗi trang chỉ được chọn 10, 25 hoặc 50.',
+        ]);
+
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $search = trim($filters['search'] ?? '');
+        $sortBy = $filters['sort_by'] ?? 'id';
+        $sortDir = $filters['sort_dir'] ?? 'asc';
+
+        $query = LopHoc::query();
+
+        // Tìm kiếm theo mã lớp, tên lớp, giáo viên
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('ma_lop',    'like', "%{$search}%")
+                  ->orWhere('ten_lop', 'like', "%{$search}%")
+                  ->orWhere('giao_vien', 'like', "%{$search}%");
+            });
+        }
+
+        // Lọc theo trạng thái
+        if (isset($filters['trang_thai'])) {
+            $query->where('trang_thai', (int) $filters['trang_thai']);
+        }
+
+        if (isset($filters['si_so_min'])) {
+            $query->where('si_so', '>=', (int) $filters['si_so_min']);
+        }
+
+        if (isset($filters['si_so_max'])) {
+            $query->where('si_so', '<=', (int) $filters['si_so_max']);
+        }
+
+        $lophocs = $query->orderBy($sortBy, $sortDir)
+                         ->paginate($perPage)
+                         ->withQueryString();
 
         return view('lophoc.index', [
-            'title'   => 'Danh sách lớp học', // 
-            'lophocs' => $lophocs // data gửi sang 
+            'title'   => 'Danh sách lớp học',
+            'lophocs' => $lophocs,
         ]);
     }
     public function create()
@@ -27,18 +79,18 @@ class LopHocController extends Controller
         ]);
     }
 
-    // 
-    public function store(Request $request)
+    public function show($id)
     {
-
-        // validate dữ liệu
-        $request->validate([
-            'ten_lop'   => 'required|string|max:255',
-            'ma_lop'    => 'required|string|max:255|unique:lop_hocs,ma_lop',
-            'giao_vien' => 'required|string|max:255',
-            'si_so'     => 'required|integer|min:1',
-            'ghi_chu'   => 'nullable|string',
+        $lophoc = LopHoc::findOrFail($id);
+        return view('lophoc.show', [
+            'title'  => 'Chi tiết lớp học',
+            'lophoc' => $lophoc
         ]);
+    }
+
+    // 
+    public function store(StoreLopHocRequest $request)
+    {
 
 
 
@@ -79,17 +131,9 @@ class LopHocController extends Controller
             'lophoc' => $lophoc
         ]);
     }
-    public function update(Request $request, $id)
+    public function update(UpdateLopHocRequest $request, $id)
     {
         $lophoc = LopHoc::findOrFail($id);
-
-        $request->validate([
-            'ten_lop'   => 'required|string|max:255',
-            'ma_lop'    => 'required|string|max:255|unique:lop_hocs,ma_lop,' . $id,
-            'giao_vien' => 'required|string|max:255',
-            'si_so'     => 'required|integer|min:1',
-            'ghi_chu'   => 'nullable|string',
-        ]);
 
         $lophoc->update([
             'ten_lop'    => $request->ten_lop,

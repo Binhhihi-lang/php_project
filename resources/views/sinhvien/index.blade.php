@@ -2,160 +2,211 @@
 
 @push('styles')
 <style>
-    table{ border-collapse: collapse; width: 100%; }
-    th, td{ text-align: left; padding: 10px; border-bottom: 1px solid var(--line); }
-    th{ background-color: var(--navy); color: #F5F1E8; }
-    tr:nth-child(even){ background-color: var(--paper-2); }
-    .badge{
-        display:inline-block; padding:3px 10px; border-radius:20px;
-        font-size:11.5px; font-weight:600;
+    .student-page { max-width: 1500px; margin: 0 auto; }
+    .student-header, .student-heading, .student-actions, .student-result-footer, .student-row-actions { display: flex; align-items: center; }
+    .student-header { justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+    .student-heading { align-items: flex-start; flex-direction: column; gap: .25rem; }
+    .student-title { color: var(--navy); font-size: 1.7rem; margin: 0; }
+    .student-subtitle { color: var(--ink-muted); font-size: .9rem; margin: 0; }
+    .student-add, .student-filter-button, .student-reset { border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font-size: .875rem; font-weight: 600; min-height: 40px; padding: .55rem .9rem; text-decoration: none; }
+    .student-add, .student-filter-button { background: var(--navy); border: 1px solid var(--navy); color: #fff; }
+    .student-add:hover, .student-filter-button:hover { background: var(--navy-2); border-color: var(--navy-2); color: #fff; }
+    .student-filter-card, .student-table-card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); }
+    .student-filter-card { margin-bottom: 1rem; padding: 1.15rem; }
+    .student-filter-grid { display: grid; gap: .9rem; grid-template-columns: repeat(4, minmax(150px, 1fr)); }
+    .student-field { display: flex; flex-direction: column; gap: .4rem; min-width: 0; }
+    .student-field label { color: var(--ink); font-size: .8rem; font-weight: 600; }
+    .student-field input, .student-field select { background: #fff; border: 1px solid #d8dce3; border-radius: 6px; color: var(--ink); font: inherit; font-size: .875rem; min-height: 40px; padding: .5rem .65rem; width: 100%; }
+    .student-field input:focus, .student-field select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgb(201 162 39 / 15%); outline: 0; }
+    .student-field-error { color: #a32626; font-size: .76rem; }
+    .student-filter-actions { display: flex; gap: .6rem; margin-top: 1rem; }
+    .student-reset { background: #fff; border: 1px solid #d8dce3; color: var(--ink); }
+    .student-reset:hover { background: var(--paper-2); color: var(--ink); }
+    .student-validation { background: #fff4f2; border: 1px solid #efc5bf; border-radius: 7px; color: #8f2820; margin-bottom: 1rem; padding: .8rem 1rem; }
+    .student-validation ul { margin: .35rem 0 0; padding-left: 1.2rem; }
+    .student-table-card { overflow: hidden; }
+    .student-table-scroll { overflow-x: auto; }
+    .student-table { border-collapse: collapse; font-size: .84rem; min-width: 1050px; width: 100%; }
+    .student-table th, .student-table td { border-bottom: 1px solid #edf0f3; padding: .75rem .85rem; text-align: left; vertical-align: middle; }
+    .student-table th { background: #f7f8fa; color: #454c57; font-size: .75rem; font-weight: 700; letter-spacing: .02em; white-space: nowrap; }
+    .student-table tbody tr:hover { background: #fbfcfd; }
+    .student-sort-link { color: inherit; text-decoration: none; white-space: nowrap; }
+    .student-sort-link:hover { color: var(--navy); }
+    .student-sort-arrow { color: var(--gold); margin-left: .2rem; }
+    .student-code { color: var(--navy); font-family: 'JetBrains Mono', monospace; font-size: .78rem; text-decoration: none; white-space: nowrap; }
+    .student-name { color: var(--ink); font-weight: 600; text-decoration: none; }
+    .student-code:hover, .student-name:hover { text-decoration: underline; }
+    .student-email { color: var(--ink-muted); }
+    .student-pill { border-radius: 999px; display: inline-flex; font-size: .74rem; font-weight: 600; padding: .26rem .58rem; white-space: nowrap; }
+    .student-active { background: #e7f5ec; color: #216d3a; }
+    .student-inactive { background: #fcebea; color: #963b36; }
+    .student-male { background: #eaf1fb; color: #315a91; }
+    .student-female { background: #f9eaf0; color: #8c3d5b; }
+    .student-row-actions { gap: .4rem; }
+    .student-edit, .student-delete { background: #fff; border: 1px solid #d8dce3; border-radius: 5px; color: var(--ink); cursor: pointer; font: inherit; font-size: .78rem; padding: .35rem .55rem; text-decoration: none; }
+    .student-edit:hover { background: #f2f5f9; color: var(--navy); }
+    .student-delete { border-color: #e8c5c2; color: #9c3028; }
+    .student-delete:hover { background: #fff4f2; }
+    .student-empty { color: var(--ink-muted); padding: 2rem !important; text-align: center !important; }
+    .student-result-footer { justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+    .student-result-summary { color: var(--ink-muted); font-size: .85rem; margin: 0; }
+    .student-result-summary strong { color: var(--ink); }
+    .student-pagination .pagination { margin: 0; }
+    @media (max-width: 1050px) { .student-filter-grid { grid-template-columns: repeat(3, minmax(150px, 1fr)); } }
+    @media (max-width: 700px) {
+        .student-header { align-items: flex-start; flex-direction: column; }
+        .student-filter-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .student-filter-actions { align-items: stretch; flex-direction: column; }
+        .student-filter-actions > * { width: 100%; }
+        .student-result-footer { align-items: flex-start; flex-direction: column; }
+        .student-pagination { max-width: 100%; overflow-x: auto; }
     }
-    .badge-active{ background:#DFF3E3; color:#1E7B3C; }
-    .badge-inactive{ background:#FBEAEA; color:#A33; }
-    .badge-nam{ background:#E3EDFF; color:#1A4D8C; }
-    .badge-nu{ background:#FDE8F0; color:#8C1A4D; }
-
-    .per-page-select{
-        padding:8px 12px;
-        border:1px solid var(--line);
-        border-radius:8px;
-        background:#fff;
-        color:var(--ink);
-        font-size:13px;
-        font-family:'Inter', sans-serif;
-        cursor:pointer;
-        outline:none;
-    }
-    .per-page-select:hover{ border-color:var(--gold); }
-
-    /* ===== Thanh trên bảng: nút thêm ===== */
-    .table-toolbar{
-        display:flex;
-        justify-content:flex-end;
-        margin-bottom:14px;
-    }
-    .btn-add{
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        background: var(--navy);
-        color:#F5F1E8;
-        border:none;
-        padding:9px 18px;
-        border-radius:8px;
-        font-size:13.5px;
-        font-weight:600;
-        text-decoration:none;
-        transition:background .15s ease;
-    }
-    .btn-add:hover{ background: var(--navy-2); }
-
-    /* ===== Cột thao tác ===== */
-    .action-group{ display:flex; gap:8px; }
-    .btn-edit,
-    .btn-delete{
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        padding:6px 14px;
-        border-radius:6px;
-        font-size:12.5px;
-        font-weight:600;
-        text-decoration:none;
-        border:1px solid transparent;
-        cursor:pointer;
-        font-family:'Inter', sans-serif;
-    }
-    .btn-edit{
-        background:#FFF6E4;
-        color:#8A6A0E;
-        border-color:#E9D6A0;
-    }
-    .btn-edit:hover{ background:#FCEBC4; }
-    .btn-delete{
-        background:#FBEAEA;
-        color:#A33;
-        border-color:#E8B4B4;
-    }
-    .btn-delete:hover{ background:#F6D6D6; }
+    @media (max-width: 440px) { .student-filter-grid { grid-template-columns: 1fr; } }
 </style>
 @endpush
 
 @section('content')
-    <div class="page-title">Danh sách sinh viên</div>
-    <div class="page-sub">Dữ liệu lấy trực tiếp từ bảng sinh_viens.</div>
+@php
+    $sortBy = request('sort_by', 'ho_ten');
+    $sortDir = request('sort_dir', 'asc');
+    $sortUrl = fn (string $column) => request()->fullUrlWithQuery([
+        'sort_by' => $column,
+        'sort_dir' => $sortBy === $column && $sortDir === 'asc' ? 'desc' : 'asc',
+        'page' => 1,
+    ]);
+    $sortLabel = fn (string $column) => $sortBy === $column ? ($sortDir === 'asc' ? '↑' : '↓') : '↕';
+@endphp
 
-    {{-- Nút thêm sinh viên --}}
-    <div class="table-toolbar">
-        <a href="{{ route('sinhvien.create') }}" class="btn-add">+ Thêm sinh viên</a>
+<section class="student-page">
+    <div class="student-header">
+        <div class="student-heading">
+            <h1 class="student-title">Danh sách sinh viên</h1>
+            <p class="student-subtitle">Tra cứu sinh viên theo lớp, giới tính, trạng thái và ngày sinh.</p>
+        </div>
+        <a href="{{ route('sinhvien.create') }}" class="student-add">+ Thêm sinh viên</a>
     </div>
 
-    <table>
-        <tr>
-            <th>Mã SV</th>
-            <th>Họ tên</th>
-            <th>Email</th>
-            <th>Ngày sinh</th>
-            <th>Giới tính</th>
-            <th>Lớp</th>
-            <th>SĐT</th>
-            <th>Trạng thái</th>
-            <th>Thao tác</th>
-        </tr>
+    @if ($errors->any())
+        <div class="student-validation" role="alert" aria-live="polite">
+            <strong>Vui lòng kiểm tra lại bộ lọc:</strong>
+            <ul>@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+        </div>
+    @endif
 
-        @forelse ($sinhviens as $sv)
-        <tr>
-            <td>{{ $sv->ma_sv }}</td>
-            <td>{{ $sv->ho_ten }}</td>
-            <td>{{ $sv->email }}</td>
-            <td>{{ $sv->ngay_sinh ? \Carbon\Carbon::parse($sv->ngay_sinh)->format('d/m/Y') : '—' }}</td>
-            <td>
-                @if ($sv->gioi_tinh)
-                    <span class="badge badge-nam">Nam</span>
-                @else
-                    <span class="badge badge-nu">Nữ</span>
-                @endif
-            </td>
-            <td>{{ $sv->lopHoc->ten_lop ?? '—' }}</td>
-            <td>{{ $sv->so_dien_thoai ?? '—' }}</td>
-            <td>
-                @if ($sv->trang_thai)
-                    <span class="badge badge-active">Đang học</span>
-                @else
-                    <span class="badge badge-inactive">Nghỉ học</span>
-                @endif
-            </td>
-            <td>
-                <div class="action-group">
-                    <a href="{{ route('sinhvien.edit', $sv->id) }}" class="btn-edit">Sửa</a>
-
-                    <form action="{{ route('sinhvien.destroy', $sv->id) }}" method="POST"
-                          onsubmit="return confirm('Bạn có chắc muốn xóa sinh viên {{ $sv->ho_ten }} không?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn-delete">Xóa</button>
-                    </form>
+    <section class="student-filter-card" aria-label="Bộ lọc sinh viên">
+        <form method="GET" action="{{ route('sinhvien.index') }}">
+            <input type="hidden" name="page" value="1">
+            <input type="hidden" name="sort_by" value="{{ $sortBy }}">
+            <input type="hidden" name="sort_dir" value="{{ $sortDir }}">
+            <div class="student-filter-grid">
+                <div class="student-field">
+                    <label for="student-search">Từ khóa</label>
+                    <input id="student-search" type="search" name="search" value="{{ request('search') }}" placeholder="Mã SV, họ tên, email, số điện thoại">
                 </div>
-            </td>
-        </tr>
-        @empty
-        <tr>
-            <td colspan="9" style="text-align:center; color:var(--ink-muted);">Chưa có sinh viên nào.</td>
-        </tr>
-        @endforelse
-    </table>
+                <div class="student-field">
+                    <label for="student-class">Lớp học</label>
+                    <select id="student-class" name="lop_hoc_id">
+                        <option value="">Tất cả lớp</option>
+                        @foreach ($lophocs as $lop)
+                            <option value="{{ $lop->id }}" {{ (string) request('lop_hoc_id') === (string) $lop->id ? 'selected' : '' }}>{{ $lop->ma_lop }} — {{ $lop->ten_lop }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="student-field">
+                    <label for="student-gender">Giới tính</label>
+                    <select id="student-gender" name="gioi_tinh">
+                        <option value="">Tất cả</option>
+                        <option value="1" {{ request('gioi_tinh') === '1' ? 'selected' : '' }}>Nam</option>
+                        <option value="0" {{ request('gioi_tinh') === '0' ? 'selected' : '' }}>Nữ</option>
+                    </select>
+                </div>
+                <div class="student-field">
+                    <label for="student-status">Trạng thái</label>
+                    <select id="student-status" name="trang_thai">
+                        <option value="">Tất cả</option>
+                        <option value="1" {{ request('trang_thai') === '1' ? 'selected' : '' }}>Đang học</option>
+                        <option value="0" {{ request('trang_thai') === '0' ? 'selected' : '' }}>Nghỉ học</option>
+                    </select>
+                </div>
+                <div class="student-field">
+                    <label for="birth-from">Ngày sinh từ</label>
+                    <input id="birth-from" type="date" name="ngay_sinh_tu" value="{{ request('ngay_sinh_tu') }}">
+                    @error('ngay_sinh_tu') <span class="student-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="student-field">
+                    <label for="birth-to">Ngày sinh đến</label>
+                    <input id="birth-to" type="date" name="ngay_sinh_den" value="{{ request('ngay_sinh_den') }}">
+                    @error('ngay_sinh_den') <span class="student-field-error">{{ $message }}</span> @enderror
+                </div>
+                <div class="student-field">
+                    <label for="student-per-page">Số dòng / trang</label>
+                    <select id="student-per-page" name="per_page">
+                        @foreach ([10, 25, 50] as $size)
+                            <option value="{{ $size }}" {{ (int) request('per_page', 10) === $size ? 'selected' : '' }}>{{ $size }} dòng</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="student-filter-actions">
+                <button type="submit" class="student-filter-button">Áp dụng bộ lọc</button>
+                <a href="{{ route('sinhvien.index') }}" class="student-reset">Xóa bộ lọc</a>
+            </div>
+        </form>
+    </section>
 
-    {{-- Chọn số lượng bản ghi mỗi trang --}}
-    <select
-    onchange="window.location.href='{{ url()->current() }}?per_page=' + this.value"
-    class="per-page-select">
+    <section class="student-table-card" aria-label="Kết quả sinh viên">
+        <div class="student-table-scroll">
+            <table class="student-table">
+                <thead>
+                    <tr>
+                        <th><a class="student-sort-link" href="{{ $sortUrl('ma_sv') }}">Mã SV <span class="student-sort-arrow">{{ $sortLabel('ma_sv') }}</span></a></th>
+                        <th><a class="student-sort-link" href="{{ $sortUrl('ho_ten') }}">Họ và tên <span class="student-sort-arrow">{{ $sortLabel('ho_ten') }}</span></a></th>
+                        <th><a class="student-sort-link" href="{{ $sortUrl('email') }}">Email <span class="student-sort-arrow">{{ $sortLabel('email') }}</span></a></th>
+                        <th><a class="student-sort-link" href="{{ $sortUrl('ngay_sinh') }}">Ngày sinh <span class="student-sort-arrow">{{ $sortLabel('ngay_sinh') }}</span></a></th>
+                        <th><a class="student-sort-link" href="{{ $sortUrl('gioi_tinh') }}">Giới tính <span class="student-sort-arrow">{{ $sortLabel('gioi_tinh') }}</span></a></th>
+                        <th><a class="student-sort-link" href="{{ $sortUrl('lop_hoc') }}">Lớp <span class="student-sort-arrow">{{ $sortLabel('lop_hoc') }}</span></a></th>
+                        <th><a class="student-sort-link" href="{{ $sortUrl('so_dien_thoai') }}">Số điện thoại <span class="student-sort-arrow">{{ $sortLabel('so_dien_thoai') }}</span></a></th>
+                        <th><a class="student-sort-link" href="{{ $sortUrl('trang_thai') }}">Trạng thái <span class="student-sort-arrow">{{ $sortLabel('trang_thai') }}</span></a></th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($sinhviens as $sv)
+                        <tr>
+                            <td><a class="student-code" href="{{ route('sinhvien.show', $sv->id) }}">{{ $sv->ma_sv }}</a></td>
+                            <td><a class="student-name" href="{{ route('sinhvien.show', $sv->id) }}">{{ $sv->ho_ten }}</a></td>
+                            <td><span class="student-email">{{ $sv->email }}</span></td>
+                            <td>{{ $sv->ngay_sinh ? \Carbon\Carbon::parse($sv->ngay_sinh)->format('d/m/Y') : '—' }}</td>
+                            <td><span class="student-pill {{ $sv->gioi_tinh ? 'student-male' : 'student-female' }}">{{ $sv->gioi_tinh ? 'Nam' : 'Nữ' }}</span></td>
+                            <td>{{ $sv->lopHoc->ten_lop ?? 'Chưa xếp lớp' }}</td>
+                            <td>{{ $sv->so_dien_thoai ?: '—' }}</td>
+                            <td><span class="student-pill {{ $sv->trang_thai ? 'student-active' : 'student-inactive' }}">{{ $sv->trang_thai ? 'Đang học' : 'Nghỉ học' }}</span></td>
+                            <td>
+                                <div class="student-row-actions">
+                                    <a href="{{ route('sinhvien.show', $sv->id) }}" class="student-edit">Chi tiết</a>
+                                    <a href="{{ route('sinhvien.edit', $sv->id) }}" class="student-edit">Sửa</a>
+                                    <form action="{{ route('sinhvien.destroy', $sv->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa sinh viên {{ $sv->ho_ten }} không?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="student-delete">Xóa</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td class="student-empty" colspan="9">Không tìm thấy sinh viên phù hợp với bộ lọc.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    <option value="10" {{ request('per_page', 10) == 10 ? 'selected' : '' }}>10 / trang</option>
-    <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25 / trang</option>
-    <option value="50" {{ request('per_page') == 50 ? 'selected' : '' }}>50 / trang</option>
-</select>
-
-    <div style="margin-top: 20px;">
-        {{ $sinhviens->links() }}
+    <div class="student-result-footer">
+        <p class="student-result-summary">
+            Hiển thị <strong>{{ $sinhviens->firstItem() ?? 0 }}–{{ $sinhviens->lastItem() ?? 0 }}</strong>
+            trong tổng số <strong>{{ $sinhviens->total() }}</strong> sinh viên
+        </p>
+        <div class="student-pagination">{{ $sinhviens->links('vendor.pagination.app-bootstrap') }}</div>
     </div>
+</section>
 @endsection

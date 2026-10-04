@@ -58,9 +58,9 @@
     </div>
 
     <div class="header-user">
-        <div class="avatar">B</div>
+        <div class="avatar">AD</div>
         <div>
-            <div class="name">Binh</div>
+            <div class="name">ADMIN</div>
             <div class="role">Quản trị viên</div>
         </div>
     </div>

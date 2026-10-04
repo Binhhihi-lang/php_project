@@ -87,17 +87,6 @@
     <div class="page-title">Sửa lớp học</div>
     <div class="page-sub">Cập nhật thông tin lớp học «{{ $lophoc->ten_lop }}».</div>
 
-    @if ($errors->any())
-        <div class="error-box">
-            <strong>Có lỗi xảy ra:</strong>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <div class="form-box">
         {{-- Trỏ tới route update, kèm id của lớp học đang sửa --}}
         <form action="{{ route('lophoc.update', $lophoc->id) }}" method="POST">

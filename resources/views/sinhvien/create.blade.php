@@ -104,6 +104,7 @@
                     <label for="ma_sv">Mã sinh viên</label>
                     <input type="text" id="ma_sv" name="ma_sv" value="{{ old('ma_sv') }}" placeholder="SV001">
                 </div>
+                
                 <div class="form-group">
                     <label for="ho_ten">Họ và tên</label>
                     <input type="text" id="ho_ten" name="ho_ten" value="{{ old('ho_ten') }}" placeholder="Nguyễn Văn A">

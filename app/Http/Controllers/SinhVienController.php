@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\SinhVien;
 use App\Models\LopHoc;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Http\Requests\StoreSinhVienRequest;
+use App\Http\Requests\UpdateSinhVienRequest;
 
 class SinhVienController extends Controller
 {
@@ -13,12 +16,77 @@ class SinhVienController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 10);
-        $sinhviens = SinhVien::with('lopHoc')->paginate($perPage)->withQueryString();
+        $ngaySinhDenRules = ['nullable', 'date'];
+        if ($request->filled('ngay_sinh_tu')) {
+            $ngaySinhDenRules[] = 'after_or_equal:ngay_sinh_tu';
+        }
+
+        $filters = $request->validate([
+            'search'        => ['nullable', 'string', 'max:100'],
+            'lop_hoc_id'    => ['nullable', 'integer', 'exists:lop_hocs,id'],
+            'gioi_tinh'     => ['nullable', Rule::in(['0', '1'])],
+            'trang_thai'    => ['nullable', Rule::in(['0', '1'])],
+            'ngay_sinh_tu'  => ['nullable', 'date'],
+            'ngay_sinh_den' => $ngaySinhDenRules,
+            'per_page'      => ['nullable', 'integer', Rule::in([10, 25, 50])],
+            'sort_by'       => ['nullable', Rule::in(['ma_sv', 'ho_ten', 'email', 'ngay_sinh', 'gioi_tinh', 'lop_hoc', 'so_dien_thoai', 'trang_thai'])],
+            'sort_dir'      => ['nullable', Rule::in(['asc', 'desc'])],
+        ], [
+            'lop_hoc_id.exists' => 'Lớp học đã chọn không tồn tại.',
+            'ngay_sinh_tu.date' => 'Ngày sinh từ không hợp lệ.',
+            'ngay_sinh_den.date' => 'Ngày sinh đến không hợp lệ.',
+            'ngay_sinh_den.after_or_equal' => 'Ngày sinh đến phải bằng hoặc sau ngày sinh từ.',
+            'per_page.in' => 'Số dòng mỗi trang chỉ được chọn 10, 25 hoặc 50.',
+        ]);
+
+        $query = SinhVien::with('lopHoc');
+        $search = trim($filters['search'] ?? '');
+
+        if ($search !== '') {
+            $query->where(function ($studentQuery) use ($search) {
+                $studentQuery->where('ma_sv', 'like', "%{$search}%")
+                    ->orWhere('ho_ten', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('so_dien_thoai', 'like', "%{$search}%");
+            });
+        }
+
+        foreach (['lop_hoc_id', 'gioi_tinh', 'trang_thai'] as $filterName) {
+            if (isset($filters[$filterName])) {
+                $query->where($filterName, $filters[$filterName]);
+            }
+        }
+
+        if (isset($filters['ngay_sinh_tu'])) {
+            $query->whereDate('ngay_sinh', '>=', $filters['ngay_sinh_tu']);
+        }
+
+        if (isset($filters['ngay_sinh_den'])) {
+            $query->whereDate('ngay_sinh', '<=', $filters['ngay_sinh_den']);
+        }
+
+        $perPage = (int) ($filters['per_page'] ?? 10);
+        $sortBy = $filters['sort_by'] ?? 'ho_ten';
+        $sortDir = $filters['sort_dir'] ?? 'asc';
+
+        if ($sortBy === 'lop_hoc') {
+            $query->orderBy(
+                LopHoc::query()
+                    ->select('ten_lop')
+                    ->whereColumn('lop_hocs.id', 'sinh_viens.lop_hoc_id'),
+                $sortDir
+            );
+        } else {
+            $query->orderBy('sinh_viens.' . $sortBy, $sortDir);
+        }
+
+        $sinhviens = $query->orderBy('sinh_viens.id')->paginate($perPage)->withQueryString();
+        $lophocs = LopHoc::query()->orderBy('ten_lop')->get(['id', 'ten_lop', 'ma_lop']);
 
         return view('sinhvien.index', [
             'title'     => 'Danh sách sinh viên',
             'sinhviens' => $sinhviens,
+            'lophocs'   => $lophocs,
         ]);
     }
 
@@ -27,7 +95,7 @@ class SinhVienController extends Controller
      */
     public function create()
     {
-        $lophocs = LopHoc::where('trang_thai', true)->get();
+        $lophocs = LopHoc::where('trang_thai', 1)->get();
 
         return view('sinhvien.create', [
             'title'   => 'Thêm sinh viên',
@@ -36,21 +104,23 @@ class SinhVienController extends Controller
     }
 
     /**
+     * Hiển thị thông tin chi tiết sinh viên.
+     */
+    public function show($id)
+    {
+        $sinhvien = SinhVien::with('lopHoc')->findOrFail($id);
+
+        return view('sinhvien.show', [
+            'title' => 'Chi tiết sinh viên',
+            'sinhvien' => $sinhvien,
+        ]);
+    }
+
+    /**
      * Xử lý lưu sinh viên mới
      */
-    public function store(Request $request)
+    public function store(StoreSinhVienRequest $request)
     {
-        $request->validate([
-            'ma_sv'         => 'required|string|max:50|unique:sinh_viens,ma_sv',
-            'ho_ten'        => 'required|string|max:255',
-            'email'         => 'required|email|max:255|unique:sinh_viens,email',
-            'ngay_sinh'     => 'nullable|date',
-            'gioi_tinh'     => 'required|boolean',
-            'lop_hoc_id'    => 'nullable|exists:lop_hocs,id',
-            'so_dien_thoai' => 'nullable|string|max:20',
-            'dia_chi'       => 'nullable|string',
-        ]);
-
         try {
             SinhVien::create($request->only([
                 'ma_sv', 'ho_ten', 'email', 'ngay_sinh', 'gioi_tinh',
@@ -74,7 +144,7 @@ class SinhVienController extends Controller
     public function edit($id)
     {
         $sinhvien = SinhVien::findOrFail($id);
-        $lophocs  = LopHoc::where('trang_thai', true)->get();
+        $lophocs  = LopHoc::where('trang_thai', 1)->get();
 
         return view('sinhvien.edit', [
             'title'    => 'Sửa sinh viên',
@@ -86,20 +156,9 @@ class SinhVienController extends Controller
     /**
      * Xử lý cập nhật sinh viên
      */
-    public function update(Request $request, $id)
+    public function update(UpdateSinhVienRequest $request, $id)
     {
         $sinhvien = SinhVien::findOrFail($id);
-
-        $request->validate([
-            'ma_sv'         => 'required|string|max:50|unique:sinh_viens,ma_sv,' . $id,
-            'ho_ten'        => 'required|string|max:255',
-            'email'         => 'required|email|max:255|unique:sinh_viens,email,' . $id,
-            'ngay_sinh'     => 'nullable|date',
-            'gioi_tinh'     => 'required|boolean',
-            'lop_hoc_id'    => 'nullable|exists:lop_hocs,id',
-            'so_dien_thoai' => 'nullable|string|max:20',
-            'dia_chi'       => 'nullable|string',
-        ]);
 
         $sinhvien->update([
             'ma_sv'         => $request->ma_sv,

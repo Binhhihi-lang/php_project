@@ -95,17 +95,6 @@
     <div class="page-title">Sửa sinh viên</div>
     <div class="page-sub">Cập nhật thông tin sinh viên «{{ $sinhvien->ho_ten }}».</div>
 
-    @if ($errors->any())
-        <div class="error-box">
-            <strong>Có lỗi xảy ra:</strong>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
     <div class="form-box">
         <form action="{{ route('sinhvien.update', $sinhvien->id) }}" method="POST">
             @csrf
