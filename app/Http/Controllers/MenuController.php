@@ -13,11 +13,12 @@ class MenuController extends Controller
     {
         $perPage   = $request->input('per_page', 10);
         $search    = $request->input('search', '');
-        $trangThai = $request->input('trangthai', '');
+        $trangThai = $request->input('trang_thai', '');
+        $viTri     = $request->input('vi_tri', '');
         $sortBy    = $request->input('sort_by', 'id');
         $sortDir   = $request->input('sort_dir', 'asc');
 
-        $allowedSorts = ['id', 'slug', 'tenhienthi', 'trangthai'];
+        $allowedSorts = ['id', 'ten', 'url', 'vi_tri', 'thu_tu', 'trang_thai'];
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'id';
         }
@@ -27,13 +28,17 @@ class MenuController extends Controller
 
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
-                $q->where('slug',         'like', "%{$search}%")
-                  ->orWhere('tenhienthi', 'like', "%{$search}%");
+                $q->where('ten', 'like', "%{$search}%")
+                  ->orWhere('url', 'like', "%{$search}%");
             });
         }
 
         if ($trangThai !== '') {
-            $query->where('trangthai', (bool) $trangThai);
+            $query->where('trang_thai', (bool) $trangThai);
+        }
+
+        if ($viTri !== '') {
+            $query->where('vi_tri', $viTri);
         }
 
         $menus = $query->orderBy($sortBy, $sortDir)
@@ -43,24 +48,22 @@ class MenuController extends Controller
         return view('menu.index', [
             'title' => 'Danh sách Menu',
             'menus' => $menus,
+            'viTriOptions' => Menu::VI_TRI,
         ]);
     }
 
     public function create()
     {
         return view('menu.create', [
-            'title' => 'Thêm Menu',
+            'title'        => 'Thêm Menu',
+            'viTriOptions' => Menu::VI_TRI,
         ]);
     }
 
     public function store(StoreMenuRequest $request)
     {
         try {
-            Menu::create([
-                'slug'       => $request->slug,
-                'tenhienthi' => $request->tenhienthi,
-                'trangthai'  => $request->has('trangthai'),
-            ]);
+            Menu::create($request->validated());
 
             return redirect()->route('menu.index')
                 ->with('success', 'Thêm menu thành công!');
@@ -74,8 +77,9 @@ class MenuController extends Controller
     {
         $menu = Menu::findOrFail($id);
         return view('menu.edit', [
-            'title' => 'Sửa Menu',
-            'menu'  => $menu,
+            'title'        => 'Sửa Menu',
+            'menu'         => $menu,
+            'viTriOptions' => Menu::VI_TRI,
         ]);
     }
 
@@ -83,11 +87,7 @@ class MenuController extends Controller
     {
         $menu = Menu::findOrFail($id);
 
-        $menu->update([
-            'slug'       => $request->slug,
-            'tenhienthi' => $request->tenhienthi,
-            'trangthai'  => $request->has('trangthai'),
-        ]);
+        $menu->update($request->validated());
 
         return redirect()->route('menu.index')
             ->with('success', 'Cập nhật menu thành công!');

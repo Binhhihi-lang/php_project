@@ -2,28 +2,76 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Menu;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreMenuRequest extends FormRequest
 {
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
 
+    /**
+     * Checkbox không được gửi lên khi bỏ tick, nên chuẩn hóa về 0
+     * để rule "required|boolean" không báo lỗi sai.
+     */
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'trang_thai' => $this->boolean('trang_thai'),
+        ]);
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     */
     public function rules(): array
     {
         return [
-            'tenhienthi' => 'required|string|max:255',
-            'slug'       => 'required|string|max:255|unique:menus,slug|regex:/^[a-z0-9\-]+$/',
+            'ten' => 'required|string|max:100',
+            // Rule regex có chứa dấu | nên phải viết dạng mảng thay vì chuỗi ngăn cách bằng |
+            'url' => ['required', 'string', 'max:255', 'regex:/^(\/|#|https?:\/\/)/'],
+            'vi_tri' => ['required', Rule::in(array_keys(Menu::VI_TRI))],
+            'nhom' => 'nullable|string|max:100',
+            'thu_tu' => 'required|integer|min:0',
+            'trang_thai' => 'required|boolean',
         ];
     }
 
+    /**
+     * Thông báo lỗi tiếng Việt.
+     */
     public function messages(): array
     {
         return [
-            'tenhienthi.required' => 'Vui lòng nhập tên hiển thị.',
-            'tenhienthi.max'      => 'Tên hiển thị không được vượt quá 255 ký tự.',
-            'slug.required'       => 'Vui lòng nhập slug.',
-            'slug.max'            => 'Slug không được vượt quá 255 ký tự.',
-            'slug.unique'         => 'Slug đã tồn tại trong hệ thống.',
-            'slug.regex'          => 'Slug chỉ được chứa chữ thường, số và dấu gạch ngang.',
+            'required' => ':attribute không được để trống.',
+            'string' => ':attribute phải là chuỗi ký tự.',
+            'max' => ':attribute không được vượt quá :max ký tự.',
+            'integer' => ':attribute phải là số nguyên.',
+            'boolean' => ':attribute không hợp lệ.',
+            'in' => ':attribute không hợp lệ.',
+            'url.regex' => 'Đường dẫn phải bắt đầu bằng /, # hoặc http(s)://.',
+            'thu_tu.min' => 'Thứ tự phải từ :min trở lên.',
+        ];
+    }
+
+    /**
+     * Tên hiển thị của các trường trong thông báo lỗi.
+     */
+    public function attributes(): array
+    {
+        return [
+            'ten' => 'Tên menu',
+            'url' => 'Đường dẫn',
+            'vi_tri' => 'Vị trí',
+            'nhom' => 'Nhóm',
+            'thu_tu' => 'Thứ tự',
+            'trang_thai' => 'Trạng thái',
         ];
     }
 }

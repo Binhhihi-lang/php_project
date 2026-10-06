@@ -145,6 +145,7 @@
                         <th><a class="sort-link" href="{{ $sortUrl('ten_lop') }}">Tên lớp <span class="sort-arrow">{{ $sortLabel('ten_lop') }}</span></a></th>
                         <th><a class="sort-link" href="{{ $sortUrl('ma_lop') }}">Mã lớp <span class="sort-arrow">{{ $sortLabel('ma_lop') }}</span></a></th>
                         <th><a class="sort-link" href="{{ $sortUrl('giao_vien') }}">Giáo viên <span class="sort-arrow">{{ $sortLabel('giao_vien') }}</span></a></th>
+                        <th>SĐT GVCN</th>
                         <th>Ghi chú</th>
                         <th><a class="sort-link" href="{{ $sortUrl('si_so') }}">Sĩ số <span class="sort-arrow">{{ $sortLabel('si_so') }}</span></a></th>
                         <th><a class="sort-link" href="{{ $sortUrl('trang_thai') }}">Trạng thái <span class="sort-arrow">{{ $sortLabel('trang_thai') }}</span></a></th>
@@ -158,6 +159,7 @@
                             <td><a class="class-name" href="{{ route('lophoc.show', $lop->id) }}">{{ $lop->ten_lop }}</a></td>
                             <td>{{ $lop->ma_lop }}</td>
                             <td>{{ $lop->giao_vien }}</td>
+                            <td>{{ $lop->so_dien_thoai_gvcn ?: '—' }}</td>
                             <td>{{ $lop->ghi_chu ?: '—' }}</td>
                             <td>{{ $lop->si_so }}</td>
                             <td><span class="status-pill {{ $lop->trang_thai ? 'status-active' : 'status-inactive' }}">{{ $lop->trang_thai ? 'Đang hoạt động' : 'Ngừng hoạt động' }}</span></td>
@@ -173,7 +175,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td class="empty-state" colspan="8">Không tìm thấy lớp học phù hợp với bộ lọc.</td></tr>
+                        <tr><td class="empty-state" colspan="9">Không tìm thấy lớp học phù hợp với bộ lọc.</td></tr>
                     @endforelse
                 </tbody>
             </table>

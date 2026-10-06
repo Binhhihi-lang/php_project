@@ -122,10 +122,7 @@ class SinhVienController extends Controller
     public function store(StoreSinhVienRequest $request)
     {
         try {
-            SinhVien::create($request->only([
-                'ma_sv', 'ho_ten', 'email', 'ngay_sinh', 'gioi_tinh',
-                'lop_hoc_id', 'so_dien_thoai', 'dia_chi', 'trang_thai',
-            ]));
+            SinhVien::create($request->validated());
 
             return redirect()->route('sinhvien.index')
                 ->with('success', 'Thêm sinh viên thành công!');
@@ -160,17 +157,7 @@ class SinhVienController extends Controller
     {
         $sinhvien = SinhVien::findOrFail($id);
 
-        $sinhvien->update([
-            'ma_sv'         => $request->ma_sv,
-            'ho_ten'        => $request->ho_ten,
-            'email'         => $request->email,
-            'ngay_sinh'     => $request->ngay_sinh,
-            'gioi_tinh'     => $request->gioi_tinh,
-            'lop_hoc_id'    => $request->lop_hoc_id,
-            'so_dien_thoai' => $request->so_dien_thoai,
-            'dia_chi'       => $request->dia_chi,
-            'trang_thai'    => $request->has('trang_thai'),
-        ]);
+        $sinhvien->update($request->validated());
 
         return redirect()->route('sinhvien.index')
             ->with('success', 'Cập nhật sinh viên thành công!');

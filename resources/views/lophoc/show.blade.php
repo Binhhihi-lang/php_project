@@ -69,6 +69,10 @@
             <div class="detail-value">{{ $lophoc->giao_vien }}</div>
         </div>
         <div class="detail-row">
+            <div class="detail-label">Số điện thoại GVCN</div>
+            <div class="detail-value">{{ $lophoc->so_dien_thoai_gvcn ?: '—' }}</div>
+        </div>
+        <div class="detail-row">
             <div class="detail-label">Sĩ số</div>
             <div class="detail-value">{{ $lophoc->si_so }}</div>
         </div>

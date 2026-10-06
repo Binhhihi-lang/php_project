@@ -60,17 +60,24 @@
 
             <input type="text" name="search"
                    value="{{ request('search') }}"
-                   placeholder="Tìm slug, tên hiển thị…">
+                   placeholder="Tìm tên, đường dẫn…">
 
-            <select name="trangthai">
+            <select name="vi_tri">
+                <option value="">Tất cả vị trí</option>
+                @foreach ($viTriOptions as $key => $label)
+                    <option value="{{ $key }}" {{ request('vi_tri') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+
+            <select name="trang_thai">
                 <option value="">Tất cả trạng thái</option>
-                <option value="1" {{ request('trangthai') === '1' ? 'selected' : '' }}>Đang hiển thị</option>
-                <option value="0" {{ request('trangthai') === '0' ? 'selected' : '' }}>Đã ẩn</option>
+                <option value="1" {{ request('trang_thai') === '1' ? 'selected' : '' }}>Đang hiển thị</option>
+                <option value="0" {{ request('trang_thai') === '0' ? 'selected' : '' }}>Đã ẩn</option>
             </select>
 
             <button type="submit" class="btn-filter">Lọc</button>
 
-            @if(request()->hasAny(['search','trangthai']))
+            @if(request()->hasAny(['search','trang_thai','vi_tri']))
                 <a href="{{ route('menu.index') }}" class="btn-reset">✕ Xóa lọc</a>
             @endif
         </form>
@@ -94,19 +101,25 @@
     <table>
         <tr>
             <th><a href="{{ mnSortUrl('id', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('id', $sortBy, $sortDir) }}">#<span class="arrow"></span></a></th>
-            <th><a href="{{ mnSortUrl('slug', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('slug', $sortBy, $sortDir) }}">Slug <span class="arrow"></span></a></th>
-            <th><a href="{{ mnSortUrl('tenhienthi', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('tenhienthi', $sortBy, $sortDir) }}">Tên hiển thị <span class="arrow"></span></a></th>
-            <th><a href="{{ mnSortUrl('trangthai', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('trangthai', $sortBy, $sortDir) }}">Trạng thái <span class="arrow"></span></a></th>
+            <th><a href="{{ mnSortUrl('ten', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('ten', $sortBy, $sortDir) }}">Tên menu <span class="arrow"></span></a></th>
+            <th><a href="{{ mnSortUrl('url', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('url', $sortBy, $sortDir) }}">Đường dẫn <span class="arrow"></span></a></th>
+            <th><a href="{{ mnSortUrl('vi_tri', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('vi_tri', $sortBy, $sortDir) }}">Vị trí <span class="arrow"></span></a></th>
+            <th>Nhóm</th>
+            <th><a href="{{ mnSortUrl('thu_tu', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('thu_tu', $sortBy, $sortDir) }}">Thứ tự <span class="arrow"></span></a></th>
+            <th><a href="{{ mnSortUrl('trang_thai', $sortBy, $sortDir) }}" class="sort-link {{ mnSortClass('trang_thai', $sortBy, $sortDir) }}">Trạng thái <span class="arrow"></span></a></th>
             <th>Thao tác</th>
         </tr>
 
         @forelse ($menus as $menu)
         <tr>
             <td>{{ $menu->id }}</td>
-            <td><span class="slug-chip">{{ $menu->slug }}</span></td>
-            <td>{{ $menu->tenhienthi }}</td>
+            <td>{{ $menu->ten }}</td>
+            <td><span class="slug-chip">{{ $menu->url }}</span></td>
+            <td>{{ $viTriOptions[$menu->vi_tri] ?? $menu->vi_tri }}</td>
+            <td>{{ $menu->nhom ?: '—' }}</td>
+            <td>{{ $menu->thu_tu }}</td>
             <td>
-                @if ($menu->trangthai)
+                @if ($menu->trang_thai)
                     <span class="badge badge-active">Đang hiển thị</span>
                 @else
                     <span class="badge badge-inactive">Đã ẩn</span>
@@ -116,7 +129,7 @@
                 <div class="action-group">
                     <a href="{{ route('menu.edit', $menu->id) }}" class="btn-edit">Sửa</a>
                     <form action="{{ route('menu.destroy', $menu->id) }}" method="POST"
-                          onsubmit="return confirm('Bạn có chắc muốn xóa menu {{ $menu->tenhienthi }} không?');">
+                          onsubmit="return confirm('Bạn có chắc muốn xóa menu {{ $menu->ten }} không?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn-delete">Xóa</button>
@@ -126,7 +139,7 @@
         </tr>
         @empty
         <tr>
-            <td colspan="5" style="text-align:center; color:var(--ink-muted); padding:24px;">
+            <td colspan="8" style="text-align:center; color:var(--ink-muted); padding:24px;">
                 Không tìm thấy menu nào.
             </td>
         </tr>

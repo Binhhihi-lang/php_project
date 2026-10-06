@@ -112,6 +112,12 @@
             </div>
 
             <div class="form-group">
+                <label for="so_dien_thoai_gvcn">Số điện thoại GVCN</label>
+                <input type="text" id="so_dien_thoai_gvcn" name="so_dien_thoai_gvcn"
+                       value="{{ old('so_dien_thoai_gvcn', $lophoc->so_dien_thoai_gvcn) }}">
+            </div>
+
+            <div class="form-group">
                 <label for="si_so">Sĩ số</label>
                 <input type="number" id="si_so" name="si_so"
                        value="{{ old('si_so', $lophoc->si_so) }}">

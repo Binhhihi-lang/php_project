@@ -25,7 +25,7 @@
 
 @section('content')
     <div class="page-title">Sửa Menu</div>
-    <div class="page-sub">Cập nhật thông tin menu: «{{ $menu->tenhienthi }}»</div>
+    <div class="page-sub">Cập nhật thông tin menu: «{{ $menu->ten }}»</div>
 
     <div class="form-box">
         <form action="{{ route('menu.update', $menu->id) }}" method="POST">
@@ -33,22 +33,43 @@
             @method('PUT')
 
             <div class="form-group">
-                <label for="tenhienthi">Tên hiển thị</label>
-                <input type="text" id="tenhienthi" name="tenhienthi"
-                       value="{{ old('tenhienthi', $menu->tenhienthi) }}">
+                <label for="ten">Tên menu</label>
+                <input type="text" id="ten" name="ten"
+                       value="{{ old('ten', $menu->ten) }}">
             </div>
 
             <div class="form-group">
-                <label for="slug">Slug</label>
-                <input type="text" id="slug" name="slug"
-                       value="{{ old('slug', $menu->slug) }}">
-                <p class="form-hint">Chỉ dùng chữ thường, số và dấu gạch ngang ( - ).</p>
+                <label for="url">Đường dẫn</label>
+                <input type="text" id="url" name="url"
+                       value="{{ old('url', $menu->url) }}">
+                <p class="form-hint">Bắt đầu bằng /, # hoặc http(s)://</p>
+            </div>
+
+            <div class="form-group">
+                <label for="vi_tri">Vị trí</label>
+                <select id="vi_tri" name="vi_tri">
+                    @foreach ($viTriOptions as $key => $label)
+                        <option value="{{ $key }}" {{ old('vi_tri', $menu->vi_tri) === $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="nhom">Nhóm</label>
+                <input type="text" id="nhom" name="nhom"
+                       value="{{ old('nhom', $menu->nhom) }}">
+            </div>
+
+            <div class="form-group">
+                <label for="thu_tu">Thứ tự</label>
+                <input type="number" id="thu_tu" name="thu_tu"
+                       value="{{ old('thu_tu', $menu->thu_tu) }}">
             </div>
 
             <div class="form-check">
-                <input type="checkbox" id="trangthai" name="trangthai" value="1"
-                       {{ old('trangthai', $menu->trangthai) ? 'checked' : '' }}>
-                <label for="trangthai">Đang hiển thị</label>
+                <input type="checkbox" id="trang_thai" name="trang_thai" value="1"
+                       {{ old('trang_thai', $menu->trang_thai) ? 'checked' : '' }}>
+                <label for="trang_thai">Đang hiển thị</label>
             </div>
 
             <div class="form-actions">

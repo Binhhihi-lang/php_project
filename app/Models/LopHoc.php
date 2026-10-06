@@ -15,6 +15,7 @@ class LopHoc extends Model
         'ten_lop',
         'ma_lop',
         'giao_vien',
+        'so_dien_thoai_gvcn',
         'ghi_chu',
         'si_so',
         'trang_thai',

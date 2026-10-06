@@ -32,22 +32,44 @@
             @csrf
 
             <div class="form-group">
-                <label for="tenhienthi">Tên hiển thị</label>
-                <input type="text" id="tenhienthi" name="tenhienthi"
-                       value="{{ old('tenhienthi') }}" placeholder="Ví dụ: Quản lý sinh viên">
+                <label for="ten">Tên menu</label>
+                <input type="text" id="ten" name="ten"
+                       value="{{ old('ten') }}" placeholder="Ví dụ: Quản lý sinh viên">
             </div>
 
             <div class="form-group">
-                <label for="slug">Slug</label>
-                <input type="text" id="slug" name="slug"
-                       value="{{ old('slug') }}" placeholder="quan-ly-sinh-vien">
-                <p class="form-hint">Chỉ dùng chữ thường, số và dấu gạch ngang ( - ). Ví dụ: quan-ly-menu</p>
+                <label for="url">Đường dẫn</label>
+                <input type="text" id="url" name="url"
+                       value="{{ old('url') }}" placeholder="/sinhvien">
+                <p class="form-hint">Bắt đầu bằng /, # hoặc http(s)://</p>
+            </div>
+
+            <div class="form-group">
+                <label for="vi_tri">Vị trí</label>
+                <select id="vi_tri" name="vi_tri">
+                    @foreach ($viTriOptions as $key => $label)
+                        <option value="{{ $key }}" {{ old('vi_tri', 'sidebar') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="nhom">Nhóm</label>
+                <input type="text" id="nhom" name="nhom"
+                       value="{{ old('nhom') }}" placeholder="Ví dụ: Học vụ">
+                <p class="form-hint">Không bắt buộc.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="thu_tu">Thứ tự</label>
+                <input type="number" id="thu_tu" name="thu_tu"
+                       value="{{ old('thu_tu', 0) }}">
             </div>
 
             <div class="form-check">
-                <input type="checkbox" id="trangthai" name="trangthai" value="1"
-                       {{ old('trangthai', true) ? 'checked' : '' }}>
-                <label for="trangthai">Đang hiển thị</label>
+                <input type="checkbox" id="trang_thai" name="trang_thai" value="1"
+                       {{ old('trang_thai', true) ? 'checked' : '' }}>
+                <label for="trang_thai">Đang hiển thị</label>
             </div>
 
             <div class="form-actions">
